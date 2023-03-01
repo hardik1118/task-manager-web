@@ -36,3 +36,8 @@
     transform: rotate(360deg);
   }
 }
+
+.gutter-box {
+  padding: 8px 8px;
+  background: #00a0e9;
+}
