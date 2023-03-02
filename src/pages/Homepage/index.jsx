@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Badge, Button, Col, DatePicker, Form, Input, Modal, Row, Select } from "antd";
+import { Badge, Button, Col, DatePicker, Form, Input, Modal, Row, Select, Spin } from "antd";
 import CardList from "../../components/cardList";
 import { PageHeader } from "@ant-design/pro-components";
 import { PlusOutlined } from "@ant-design/icons";
@@ -12,13 +12,20 @@ const HomePage = () => {
   const [title, setTitle] = useState();
   const [endDate, setEndDate] = useState('');
   const [status, setStatus] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+  const loadtasks = () => {
     axiosInstance.get('/tasks')
       .then(res => {
+        setLoading(true);
         const list = res.data?.data;
         setApiData(list);
+        setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    loadtasks()
   }, []);
 
   const showAddCard = () => {
@@ -26,13 +33,20 @@ const HomePage = () => {
   };
 
   const handleOk = async () => {
-    axiosInstance
+    setLoading(true);
+    setOpenAddCard(false);
+    await axiosInstance
       .post('tasks', {
         title,
         endDate,
         status
-      })
-    setOpenAddCard(false);
+      });
+    await axiosInstance.get('/tasks')
+      .then(res => {
+        const list = res.data?.data;
+        setApiData(list);
+        setLoading(false);
+      });
   };
 
   const handleCancel = () => {
@@ -67,17 +81,17 @@ const HomePage = () => {
         <Col className="gutter-row" span={6}>
           {/* <TaskCard title={ 'testing card'} date={ "2023-01-25T13:05:10.000Z"} id={1} /> */}
           {/* <CardList data={[{ id: 2, title: 'test', endDate: '2023-01-24T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }, { id: 1, title: 'test', endDate: '2023-01-25T13:05:10.000Z' }]} /> */}
-          <CardList data={apiData?.filter((obj) => obj?.status === 1)} />
+          <CardList data={apiData?.filter((obj) => obj?.status === 1)} loadtasks={loadtasks} />
         </Col>
 
         <Col className="gutter-row" span={6}>
-          <CardList data={apiData?.filter((obj) => obj?.status === 2)} />
+          <CardList data={apiData?.filter((obj) => obj?.status === 2)} loadtasks={loadtasks} />
         </Col>
         <Col className="gutter-row" span={6}>
-          <CardList data={apiData?.filter((obj) => obj?.status === 3)} />
+          <CardList data={apiData?.filter((obj) => obj?.status === 3)} loadtasks={loadtasks} />
         </Col>
         <Col className="gutter-row" span={6}>
-          <CardList data={apiData?.filter((obj) => obj?.status === 4)} />
+          <CardList data={apiData?.filter((obj) => obj?.status === 4)} loadtasks={loadtasks} />
         </Col>
       </Row>
 
@@ -128,6 +142,8 @@ const HomePage = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <Spin spinning={loading}></Spin>
     </>
   );
 };

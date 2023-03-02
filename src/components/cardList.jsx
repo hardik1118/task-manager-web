@@ -5,7 +5,7 @@ import TaskCard from "./taskCard";
 
 const CardList = (props) => {
     return <div >
-        {props.data?.map((obj) => <TaskCard id={obj.id} title={obj.title} endDate={obj.endDate} status={obj.status} />)}
+        {props.data?.map((obj) => <TaskCard id={obj.id} title={obj.title} endDate={obj.endDate} status={obj.status} loadtasks={props.loadtasks} />)}
     </div>
 };
 

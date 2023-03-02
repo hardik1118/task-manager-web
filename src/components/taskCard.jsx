@@ -1,5 +1,5 @@
 import { EditOutlined, HistoryOutlined } from "@ant-design/icons";
-import { Badge, Button, Card, DatePicker, Modal, Select, Tabs } from "antd";
+import { Badge, Button, Card, DatePicker, Modal, Select, Space, Spin, Tabs } from "antd";
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { axiosInstance } from "../utilities/axios";
@@ -15,6 +15,7 @@ const TaskCard = (props) => {
   const [status, setStatus] = useState(null);
   const [history, setHistory] = useState([]);
   const [tabContent, setTabContent] = useState('');
+  const [loading, setLoading] = useState(false);
   const dateFormat = "YYYY-MM-DD";
 
   useEffect(() => {
@@ -24,28 +25,34 @@ const TaskCard = (props) => {
     setIsModalOpen(true);
   };
 
-  const handlehistoryModal = () => {
-    axiosInstance
+  const handlehistoryModal = async () => {
+    setLoading(true);
+    await axiosInstance
       .get(`tasks/${props?.id}/history`, {
         endDate: endDate || null,
         status
-      }).then(res => {
+      }).then(async res => {
         const list = res.data?.data;
         setHistory(list);
+        setLoading(false);
+        setHistoryModalOpen(true);
       });
-    setHistoryModalOpen(true);
   };
 
   const closehistoryModal = () => {
     setHistoryModalOpen(false);
   }
 
-  const handleOk = () => {
-    axiosInstance
+  const handleOk = async () => {
+    setLoading(true);
+    await axiosInstance
       .patch(`tasks/${props?.id}`, {
         endDate: endDate || null,
         status
-      })
+      }).then((res) => {
+        setLoading(false);
+      });
+    props.loadtasks();
     setIsModalOpen(false);
   };
 
@@ -60,7 +67,7 @@ const TaskCard = (props) => {
     setStatus(value)
   };
 
-  const handleHistoryTabCange = (key) => {
+  const handleHistoryTabCange = async (key) => {
     if (Number(key) === 2) {
       const data = history.filter((obj) => obj.type === 2)
       setTabContent(data.map((obj) => <p>{moment(obj.value).format('DD-MM-YYYY')} : {moment(obj.createdAt).format('DD-MM-YYYY')}</p>))
@@ -154,7 +161,9 @@ const TaskCard = (props) => {
           <TabPane tab='Date History' key={2} >{tabContent}</TabPane>
           <TabPane tab='Status History' key={1} >{tabContent}</TabPane>
         </Tabs>
+        <Spin spinning={loading}></Spin>
       </Modal>
+
     </>
   );
 };
